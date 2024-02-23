@@ -23,7 +23,4 @@ To use this project, follow these steps:
 3. Compile the code: `dotnet build`
 4. Run the program: `dotnet run`
 
-## License
-This project is licensed under the [MIT License](LICENSE).
-
 
