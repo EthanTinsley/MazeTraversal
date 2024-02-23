@@ -1,4 +1,6 @@
 **/bin/
+**/bin2/
 **/obj/
+**obj2/
 **.DS_Store
 /net8/

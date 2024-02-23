@@ -10,21 +10,24 @@ public class ProblemState {
     public bool Verbose {get; set;}
 
 
-    public ProblemState(int[,] maze, Tuple<int, int> robotStartIndex, Tuple<int, int> exitIndex, bool verbose = false) {
+    public ProblemState(int[,] maze, Tuple<int, int> robotStartIndex, Tuple<int, int> exitIndex, RobotType robotType, bool verbose = false) {
         Maze = maze;
         RobotStartIndex = robotStartIndex;
         CurrentRobotIndex = robotStartIndex;
         CurrentRobotDirection = Direction.Up;
         ExitIndex = exitIndex;
-
-        Robot = new DepthFirstSearchRobot(
-            () => ReadSensorLeft(),
-            () => ReadSensorRight(),
-            () => ReadSensorForward(),
-            () => ReadSensorUp(),
-            (action) => ExecuteAction(action)
-        );
         Verbose = verbose;
+
+        switch (robotType) {
+            case RobotType.BreadthFirstSearch:
+                Robot = new BreadthFirstSearchRobot(ReadSensorLeft, ReadSensorRight, ReadSensorForward, ReadSensorUp, ExecuteAction);
+                break;
+            case RobotType.DepthFirstSearch:
+                Robot = new DepthFirstSearchRobot(ReadSensorLeft, ReadSensorRight, ReadSensorForward, ReadSensorUp, ExecuteAction);
+                break;
+            default:
+                throw new ArgumentException("Invalid Robot Type");
+        }
     }
 
     public bool ReadSensorLeft() {
