@@ -188,13 +188,17 @@ public class ProblemState {
         Console.WriteLine("--------------------");
         for (int i = 0; i < Maze.GetLength(0); i++) {
             for (int j = 0; j < Maze.GetLength(1); j++) {
-                if (path.Contains(new Tuple<int, int>(i, j))) {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("P");
-                    Console.ResetColor();
-                } else if (ExitIndex.Item1 == i && ExitIndex.Item2 == j) {
+                if (ExitIndex.Item1 == i && ExitIndex.Item2 == j) {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.Write("E");
+                    Console.ResetColor();
+                } else if (RobotStartIndex.Equals(new Tuple<int, int>(i, j))) {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("S");
+                    Console.ResetColor();
+                } else if (path.Contains(new Tuple<int, int>(i, j))) {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("#");
                     Console.ResetColor();
                 } else if (Maze[i, j] == 1) {
                     Console.Write("X");

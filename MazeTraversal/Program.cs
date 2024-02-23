@@ -31,7 +31,7 @@ class Program
         var exitIndex = new Tuple<int, int>(7, 10);
 
         // Create a new Maze State 
-        ProblemState state = new ProblemState(maze, startIndex, exitIndex, RobotType.BreadthFirstSearch, true);
+        ProblemState state = new ProblemState(maze, startIndex, exitIndex, RobotType.DepthFirstSearch, false);
         var path = state.RunSimulation();
         state.PrintPath(path);
 
@@ -61,7 +61,7 @@ class Program
         exitIndex = new Tuple<int, int>(7, 10);
 
         // Create a new Maze State 
-        state = new ProblemState(maze2, startIndex, exitIndex, RobotType.BreadthFirstSearch, false);
+        state = new ProblemState(maze2, startIndex, exitIndex, RobotType.DepthFirstSearch, false);
         path = state.RunSimulation();
         state.PrintPath(path);
     }
