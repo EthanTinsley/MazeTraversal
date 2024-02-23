@@ -1,22 +1,24 @@
 
 
-public class Robot
-{
-    private Func<bool> ReadSensorLeft { get; }
-    private Func<bool> ReadSensorRight { get; }
-    private Func<bool> ReadSensorForward { get; }
-    private Func<bool> ReadSensorUp { get; }
+public abstract class BaseRobot : IRobot {
+
+    public Func<bool> ReadSensorLeft { get; }
+    public Func<bool> ReadSensorRight { get; }
+    public Func<bool> ReadSensorForward { get; }
+    public Func<bool> ReadSensorUp { get; }
+
+    /// <summary>
+    /// A function that executes an action.
+    /// The action can be to rotate the robot to the left, right, or to move forward.
+    /// This affects the state of the maze and the robot's position within the maze.
+    /// </summary>
+    /// <returns>
+    /// True if the action was executed successfully, false otherwise.
+    /// </returns>
     private Func<Action, bool> ExecuteAnAction { get; }
-    private Tuple<int, int> CurrentIndex => new Tuple<int, int>(x, y);
-    private Stack<Tuple<int, int>> stack = new Stack<Tuple<int, int>>();
-    private HashSet<Tuple<int, int>> visited = new HashSet<Tuple<int, int>>();
-    private Dictionary<Tuple<int, int>, List<Tuple<int, int>>> previous = new Dictionary<Tuple<int, int>, List<Tuple<int, int>>>();
-    private Direction Direction = Direction.Up;
-    private int x = 0;
-    private int y = 0;
 
 
-    public Robot(Func<bool> readSensorLeft, Func<bool> readSensorRight, Func<bool> readSensorForward, Func<bool> readSensorUp, Func<Action, bool> executeAnAction)
+    public BaseRobot(Func<bool> readSensorLeft, Func<bool> readSensorRight, Func<bool> readSensorForward, Func<bool> readSensorUp, Func<Action, bool> executeAnAction)
     {
         ReadSensorLeft = readSensorLeft;
         ReadSensorRight = readSensorRight;
@@ -25,59 +27,45 @@ public class Robot
         ExecuteAnAction = executeAnAction;
     }
 
-    public List<Tuple<int, int>> Escape() {
-        // Initialize the start position
-        var start = new Tuple<int, int>(x, y);
-        
-        // Push the start position to the stack
-        stack.Push(start);
-        
-        // Initialize the path for the start node
-        previous[start] = new List<Tuple<int, int>> { start };
-        
-        // Add the start position to the visited set
-        visited.Add(start);
+    public abstract List<Tuple<int, int>> Escape();
 
-        // While there are still nodes to visit
-        while (stack.Count > 0) {
-            // Pop the current node from the stack
-            var current = stack.Pop();
-            
-            // Move to the current node
-            MoveTo(current);
-
-            // If the exit is found
-            if (!ReadSensorUp()) {
-                // Return the path from the start to the current node
-                return previous[current];
-            }
-
-            // For each neighbor of the current node
-            foreach (var neighbor in GetNeighbors()) {
-                // If the neighbor has not been visited yet
-                if (!visited.Contains(neighbor)) {
-                    // Push the neighbor to the stack
-                    stack.Push(neighbor);
-                    
-                    // Add the neighbor to the visited set
-                    visited.Add(neighbor);
-                    
-                    // Add the current node to the path of the previous node to get the path to the neighbor
-                    previous[neighbor] = new List<Tuple<int, int>>(previous[current]) { neighbor };
-                }
-            }
-        }
-
-        // If no path to the exit is found, return an empty list
-        return new List<Tuple<int, int>>();
+    /// <summary>
+    /// Executes the specified action and updates the state of the robot and the maze.
+    /// </summary>
+    /// <param name="action"></param>
+    protected virtual bool PerformAction(Action action) {
+        return ExecuteAnAction(action);
     }
+}
+
+/// <summary>
+/// Basic Robot that adds mapping functionality to the base robot
+/// </summary>
+public abstract class BaseMappingRobot : BaseRobot {
+    protected Direction Direction {get; set;}
+    protected int x {get; set;}
+    protected int y {get; set;}
+    protected Dictionary<Tuple<int, int>, List<Tuple<int, int>>> previous {get; set;}
+    protected Tuple<int, int> CurrentIndex => new Tuple<int, int>(x, y);
+
+
+    public BaseMappingRobot(Func<bool> readSensorLeft, Func<bool> readSensorRight, Func<bool> readSensorForward, Func<bool> readSensorUp, Func<Action, bool> executeAnAction)
+        : base(readSensorLeft, readSensorRight, readSensorForward, readSensorUp, executeAnAction)
+    {
+        Direction = Direction.Up;
+        x = 0;
+        y = 0;
+        previous = new Dictionary<Tuple<int, int>, List<Tuple<int, int>>>();
+    }
+
+    public abstract override List<Tuple<int, int>> Escape();
 
     /// <summary>
     /// Moves the robot to the specified destination.
     /// </summary>
     /// <param name="destination">A tuple representing the destination coordinates (x, y) on the grid.</param>
     /// <exception cref="System.Exception">Throws an exception if the robot fails to move to the destination.</exception>
-    public void MoveTo(Tuple<int, int> destination) {
+    protected void MoveTo(Tuple<int, int> destination) {
         // Calculate the difference in x and y coordinates between the current position and the destination
         int dx = destination.Item1 - x;
         int dy = destination.Item2 - y;
@@ -94,22 +82,22 @@ public class Robot
 
         // Rotate the robot to face upwards for the next move
         while(Direction != Direction.Up) {
-            ExecuteAction(Action.RotateRight);
+            PerformAction(Action.RotateRight);
         }
 
         // Depending on the difference in x and y coordinates, rotate the robot and move forward
         if (dy == 1) {
-            ExecuteAction(Action.RotateRight);
-            ExecuteAction(Action.MoveForward);
+            PerformAction(Action.RotateRight);
+            PerformAction(Action.MoveForward);
         } else if (dy == -1) {
-            ExecuteAction(Action.RotateLeft);
-            ExecuteAction(Action.MoveForward);
+            PerformAction(Action.RotateLeft);
+            PerformAction(Action.MoveForward);
         } else if (dx == 1) {
-            ExecuteAction(Action.RotateRight);
-            ExecuteAction(Action.RotateRight);
-            ExecuteAction(Action.MoveForward);
+            PerformAction(Action.RotateRight);
+            PerformAction(Action.RotateRight);
+            PerformAction(Action.MoveForward);
         } else if (dx == -1) {
-            ExecuteAction(Action.MoveForward);
+            PerformAction(Action.MoveForward);
         }
 
         // If the robot did not reach the destination, throw an exception
@@ -122,7 +110,7 @@ public class Robot
     /// Backtracks the robot to the specified destination.
     /// </summary>
     /// <param name="destination">A tuple representing the destination coordinates (x, y) on the grid.</param>
-    public void BacktrackTo(Tuple<int, int> destination) {
+    protected void BacktrackTo(Tuple<int, int> destination) {
         // Store the current position
         var startIndex = CurrentIndex;
 
@@ -142,7 +130,11 @@ public class Robot
     }
 
 
-    public List<Tuple<int, int>> GetNeighbors() {
+    /// <summary>
+    /// Uses the sensors and actuators to get the neighbors of the current node
+    /// </summary>
+    /// <returns></returns>
+    protected List<Tuple<int, int>> GetNeighbors() {
         // Use the sensors and current direction to get nodes that are not walls
         // Will need to make one rotation to get the back of the robot and then rotate back to the original direction
         var neighbors = new List<Tuple<int, int>>();
@@ -151,7 +143,7 @@ public class Robot
         // this is to make sure we are facing the right direction to check the sensors
         // inrelation to the managed index
         while(Direction != Direction.Up) {
-            ExecuteAction(Action.RotateRight);
+            PerformAction(Action.RotateRight);
         }
 
         // check the sensors and add the neighbors to the list
@@ -169,16 +161,20 @@ public class Robot
         
         // check behind the robot
         // rotate 90 degrees to the right and check right sensor then roate 90 degrees to the left
-        ExecuteAction(Action.RotateRight);
+        PerformAction(Action.RotateRight);
         if (!ReadSensorRight()) {
             neighbors.Add(new Tuple<int, int>(x+1, y));
         }
-        ExecuteAction(Action.RotateLeft);
+        PerformAction(Action.RotateLeft);
 
         return neighbors;
     }
 
-    private void UpdateDirection(Action action) {
+    /// <summary>
+    /// Updates the direction based on the current direction and action.
+    /// </summary>
+    /// <param name="action"></param>
+    protected void UpdateDirection(Action action) {
         switch (action) {
             case Action.RotateRight:
                 switch (Direction) {
@@ -216,7 +212,11 @@ public class Robot
         }
     }
 
-    private void UpdateCoordinates(Action action) {
+    /// <summary>
+    /// Updates the x and y coordinates based on the current direction and action.
+    /// </summary>
+    /// <param name="action"></param>
+    protected void UpdateCoordinates(Action action) {
         if (action == Action.MoveForward) {
             switch (Direction) {
                 case Direction.Up:
@@ -235,10 +235,12 @@ public class Robot
         }
     }
 
-    private void ExecuteAction(Action action) {
-        if (ExecuteAnAction(action)) {
+    protected override bool PerformAction(Action action) {
+        var result = base.PerformAction(action);
+        if (result) {
             UpdateDirection(action);
             UpdateCoordinates(action);
         }
+        return result;
     }
 }

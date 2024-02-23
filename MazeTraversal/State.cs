@@ -6,7 +6,7 @@ public class ProblemState {
     public Tuple<int, int> ExitIndex {get;}
     public Tuple<int, int> CurrentRobotIndex {get; set;}
     public Direction CurrentRobotDirection {get; set;}
-    public Robot Robot {get; set;}
+    public IRobot Robot {get; set;}
     public bool Verbose {get; set;}
 
 
@@ -17,7 +17,7 @@ public class ProblemState {
         CurrentRobotDirection = Direction.Up;
         ExitIndex = exitIndex;
 
-        Robot = new Robot(
+        Robot = new DepthFirstSearchRobot(
             () => ReadSensorLeft(),
             () => ReadSensorRight(),
             () => ReadSensorForward(),
