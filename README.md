@@ -14,6 +14,19 @@ The uniqueness of the problem is that the robot does not actually have access to
 interacts with the world via 3 sensors and an actuator. It must track its movements in order to construct 
 indices and paths. This is different from a basic traversal where the maze indices are known from the robot.
 
+## Examples 
+
+Depth-First Search Without any Maze islands
+
+
+![Alt text](./Examples/images/DFSWithoutIsland.png)
+
+
+Depth-First Search *With* Maze Island
+
+
+![Alt text](./Examples/images/DFSMazeWithIsland.png)
+
 
 ## Usage
 To use this project, follow these steps:
